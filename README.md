@@ -28,6 +28,51 @@ The main interface where users can search for airports using natural language qu
 ### About Page
 Comprehensive information about the application, its features, and how it works.
 
+## 🔄 Data Flow Architecture
+
+```
+┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
+│                 │    │                  │    │                 │
+│   User Input    │───▶│   Next.js App    │───▶│   API Route     │
+│                 │    │                  │    │                 │
+│ "Find airports  │    │  • Input Form    │    │ /api/chat       │
+│  near Tokyo"    │    │  • UI Components │    │                 │
+│                 │    │  • State Mgmt    │    │                 │
+└─────────────────┘    └──────────────────┘    └─────────────────┘
+                                                         │
+                                                         ▼
+┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
+│                 │    │                  │    │                 │
+│  Search Results │◀───│   AI Processing  │◀───│   OpenAI API    │
+│                 │    │                  │    │                 │
+│ • Airport List  │    │ • GPT-4o-mini    │    │ • Model: GPT-4o │
+│ • Codes & Info  │    │ • Tool Calling   │    │ • Streaming     │
+│ • Distances     │    │ • Response Gen   │    │ • Function Call │
+│                 │    │                  │    │                 │
+└─────────────────┘    └──────────────────┘    └─────────────────┘
+                                │                         │
+                                ▼                         ▼
+                       ┌──────────────────┐    ┌─────────────────┐
+                       │                  │    │                 │
+                       │  Airport Tool    │    │  Mock Database  │
+                       │                  │    │                 │
+                       │ • City Parsing   │    │ • Airport Data  │
+                       │ • Data Lookup    │    │ • Coordinates   │
+                       │ • Result Format  │    │ • Distances     │
+                       │                  │    │                 │
+                       └──────────────────┘    └─────────────────┘
+```
+
+### Flow Explanation:
+1. **User Input**: Natural language query entered in the search form
+2. **Next.js App**: Handles UI state and sends request to API route
+3. **API Route**: Processes request and communicates with OpenAI
+4. **OpenAI API**: GPT-4o-mini analyzes query and determines if tool use is needed
+5. **Airport Tool**: Custom function that searches airport database
+6. **Mock Database**: Returns relevant airport information
+7. **AI Processing**: Formats and contextualizes the results
+8. **Search Results**: Streamed back to user interface in real-time
+
 ## 🛠️ Technology Stack
 
 - **Frontend**: Next.js 15 with App Router
@@ -121,23 +166,127 @@ NODE_ENV=development
 - **Search Page**: Main interface for finding airports
 - **About Page**: Information about the application and its features
 
+## 🤖 AI Tool Integration
+
+The application uses OpenAI's function calling feature to provide intelligent airport search:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    AI Tool System                           │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  User Query: "Find airports near Tokyo"                     │
+│                        │                                    │
+│                        ▼                                    │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │              GPT-4o-mini Analysis                   │    │
+│  │  • Parse natural language                          │    │
+│  │  • Identify intent (airport search)                │    │
+│  │  • Extract city name: "Tokyo"                      │    │
+│  │  • Decide to call searchAirports tool              │    │
+│  └─────────────────────────────────────────────────────┘    │
+│                        │                                    │
+│                        ▼                                    │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │            searchAirports Tool                      │    │
+│  │                                                     │    │
+│  │  Input Schema:                                      │    │
+│  │  {                                                  │    │
+│  │    city: string // "Tokyo"                          │    │
+│  │  }                                                  │    │
+│  │                                                     │    │
+│  │  Processing:                                        │    │
+│  │  • Normalize city name to lowercase                 │    │
+│  │  • Lookup in airport database                      │    │
+│  │  • Return airport objects with:                    │    │
+│  │    - name, code, distance, location                │    │
+│  │                                                     │    │
+│  │  Output:                                            │    │
+│  │  {                                                  │    │
+│  │    airports: [                                      │    │
+│  │      {                                              │    │
+│  │        name: "Haneda Airport",                      │    │
+│  │        code: "HND",                                 │    │
+│  │        distance: "14 miles",                       │    │
+│  │        location: "Tokyo, Japan"                     │    │
+│  │      },                                             │    │
+│  │      // ... more airports                          │    │
+│  │    ]                                                │    │
+│  │  }                                                  │    │
+│  └─────────────────────────────────────────────────────┘    │
+│                        │                                    │
+│                        ▼                                    │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │              Response Generation                    │    │
+│  │  • Format results in natural language              │    │
+│  │  • Add helpful context and recommendations         │    │
+│  │  • Stream response back to user                    │    │
+│  └─────────────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Tool Features:
+- **Intelligent Parsing**: Extracts city names from natural language
+- **Fallback Handling**: Provides generic results for unknown cities
+- **Structured Output**: Returns consistent airport data format
+- **Real-time Processing**: Simulates API delay for realistic UX
+
 ## 🏗️ Project Structure
 
 ```
 airport-agent/
 ├── app/                    # Next.js App Router
 │   ├── about/             # About page
+│   │   └── page.tsx       # About page component
 │   ├── api/               # API routes
 │   │   └── chat/          # OpenAI chat endpoint
+│   │       └── route.ts   # Chat API with tool integration
 │   ├── globals.css        # Global styles
-│   ├── layout.tsx         # Root layout
-│   └── page.tsx           # Home page
+│   ├── layout.tsx         # Root layout with navigation
+│   └── page.tsx           # Home page with search interface
 ├── components/            # React components
-│   ├── ui/               # shadcn/ui components
-│   └── navigation.tsx    # Navigation component
+│   ├── ui/               # shadcn/ui components (buttons, cards, etc.)
+│   └── navigation.tsx    # Navigation component with routing
 ├── lib/                  # Utility functions
+│   └── utils.ts          # Tailwind CSS utilities
 ├── public/               # Static assets
-└── .env.local           # Environment variables
+├── .env.local           # Environment variables (not tracked)
+├── .env.local.example   # Environment template
+└── README.md            # This file
+```
+
+## 🔧 Component Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     RootLayout                              │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │                Navigation                           │    │
+│  │  • Logo & Branding                                  │    │
+│  │  • Search/About Links                               │    │
+│  │  • Active State Management                          │    │
+│  └─────────────────────────────────────────────────────┘    │
+│                                                             │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │                Page Content                         │    │
+│  │                                                     │    │
+│  │  Home Page (/)           About Page (/about)        │    │
+│  │  ┌─────────────────┐    ┌─────────────────────┐     │    │
+│  │  │ Search Form     │    │ Feature Overview    │     │    │
+│  │  │ • Input Field   │    │ • App Description   │     │    │
+│  │  │ • Submit Button │    │ • How It Works      │     │    │
+│  │  │ • Loading State │    │ • Technology Stack  │     │    │
+│  │  └─────────────────┘    └─────────────────────┘     │    │
+│  │                                                     │    │
+│  │  ┌─────────────────┐                                │    │
+│  │  │ Chat Interface  │                                │    │
+│  │  │ • Message List  │                                │    │
+│  │  │ • User Messages │                                │    │
+│  │  │ • AI Responses  │                                │    │
+│  │  │ • Tool Results  │                                │    │
+│  │  └─────────────────┘                                │    │
+│  └─────────────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 ## 🚀 Deployment
