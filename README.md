@@ -180,10 +180,10 @@ The application uses OpenAI's function calling feature to provide intelligent ai
 │                        ▼                                    │
 │  ┌─────────────────────────────────────────────────────┐    │
 │  │              GPT-4o-mini Analysis                   │    │
-│  │  • Parse natural language                          │    │
-│  │  • Identify intent (airport search)                │    │
-│  │  • Extract city name: "Tokyo"                      │    │
-│  │  • Decide to call searchAirports tool              │    │
+│  │  • Parse natural language                           │    │
+│  │  • Identify intent (airport search)                 │    │
+│  │  • Extract city name: "Tokyo"                       │    │
+│  │  • Decide to call searchAirports tool               │    │
 │  └─────────────────────────────────────────────────────┘    │
 │                        │                                    │
 │                        ▼                                    │
@@ -197,9 +197,9 @@ The application uses OpenAI's function calling feature to provide intelligent ai
 │  │                                                     │    │
 │  │  Processing:                                        │    │
 │  │  • Normalize city name to lowercase                 │    │
-│  │  • Lookup in airport database                      │    │
-│  │  • Return airport objects with:                    │    │
-│  │    - name, code, distance, location                │    │
+│  │  • Lookup in airport database                       │    │
+│  │  • Return airport objects with:                     │    │
+│  │    - name, code, distance, location                 │    │
 │  │                                                     │    │
 │  │  Output:                                            │    │
 │  │  {                                                  │    │
@@ -207,10 +207,10 @@ The application uses OpenAI's function calling feature to provide intelligent ai
 │  │      {                                              │    │
 │  │        name: "Haneda Airport",                      │    │
 │  │        code: "HND",                                 │    │
-│  │        distance: "14 miles",                       │    │
+│  │        distance: "14 miles",                        │    │
 │  │        location: "Tokyo, Japan"                     │    │
 │  │      },                                             │    │
-│  │      // ... more airports                          │    │
+│  │      // ... more airports                           │    │
 │  │    ]                                                │    │
 │  │  }                                                  │    │
 │  └─────────────────────────────────────────────────────┘    │
@@ -218,9 +218,9 @@ The application uses OpenAI's function calling feature to provide intelligent ai
 │                        ▼                                    │
 │  ┌─────────────────────────────────────────────────────┐    │
 │  │              Response Generation                    │    │
-│  │  • Format results in natural language              │    │
-│  │  • Add helpful context and recommendations         │    │
-│  │  • Stream response back to user                    │    │
+│  │  • Format results in natural language               │    │
+│  │  • Add helpful context and recommendations          │    │
+│  │  • Stream response back to user                     │    │
 │  └─────────────────────────────────────────────────────┘    │
 └─────────────────────────────────────────────────────────────┘
 ```
