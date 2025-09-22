@@ -26,14 +26,11 @@ export default function AirportSearchAgent() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 pt-8">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-8">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <Plane className="h-8 w-8 text-blue-600" />
-            <h1 className="text-3xl font-bold text-gray-900">Airport Search Agent</h1>
-          </div>
-          <p className="text-gray-600 text-lg">Find the closest airports to any city worldwide</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Find Your Airport</h1>
+          <p className="text-gray-600 text-lg">Search for the closest airports to any city worldwide</p>
         </div>
 
         <Card className="mb-6">

@@ -6,24 +6,12 @@ import { Plane, MapPin, Zap, Globe, ArrowLeft, Github, ExternalLink } from "luci
 
 export default function AboutPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 pt-8">
       <div className="max-w-4xl mx-auto">
-        {/* Header with back button */}
-        <div className="mb-8">
-          <Link href="/">
-            <Button variant="ghost" className="mb-4">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Search
-            </Button>
-          </Link>
-          
-          <div className="text-center">
-            <div className="flex items-center justify-center gap-2 mb-4">
-              <Plane className="h-8 w-8 text-blue-600" />
-              <h1 className="text-3xl font-bold text-gray-900">About Airport Search Agent</h1>
-            </div>
-            <p className="text-gray-600 text-lg">Your AI-powered companion for finding airports worldwide</p>
-          </div>
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">About Airport Search Agent</h1>
+          <p className="text-gray-600 text-lg">Your AI-powered companion for finding airports worldwide</p>
         </div>
 
         {/* Main content */}
