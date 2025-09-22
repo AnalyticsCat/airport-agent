@@ -4,7 +4,109 @@ import { z } from "zod"
 
 export const maxDuration = 30
 
-// Mock airport data - in a real app, you'd use a real airport API
+// Airport API configuration
+const AVIATION_EDGE_API_KEY = process.env.AVIATION_EDGE_API_KEY
+const AVIATION_EDGE_BASE_URL = "https://aviation-edge.com/v2/public"
+
+// Interface for airport data
+interface Airport {
+  name: string
+  code: string
+  distance: string
+  location: string
+}
+
+// Function to calculate distance between two coordinates (Haversine formula)
+function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 3959 // Earth's radius in miles
+  const dLat = (lat2 - lat1) * Math.PI / 180
+  const dLon = (lon2 - lon1) * Math.PI / 180
+  const a =
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon/2) * Math.sin(dLon/2)
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))
+  return R * c
+}
+
+// Function to get city coordinates using a geocoding service
+async function getCityCoordinates(city: string): Promise<{lat: number, lon: number} | null> {
+  try {
+    // Using OpenStreetMap Nominatim (free geocoding service)
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(city)}&limit=1`
+    )
+    const data = await response.json()
+
+    if (data && data.length > 0) {
+      return {
+        lat: parseFloat(data[0].lat),
+        lon: parseFloat(data[0].lon)
+      }
+    }
+    return null
+  } catch (error) {
+    console.error('Error getting city coordinates:', error)
+    return null
+  }
+}
+
+// Function to search airports using Aviation Edge API
+async function searchAirportsNearCity(city: string): Promise<Airport[]> {
+  try {
+    // First, get city coordinates
+    const cityCoords = await getCityCoordinates(city)
+    if (!cityCoords) {
+      throw new Error('City not found')
+    }
+
+    // Get airports from Aviation Edge API
+    const response = await fetch(
+      `${AVIATION_EDGE_BASE_URL}/airportDatabase?key=${AVIATION_EDGE_API_KEY}`
+    )
+
+    if (!response.ok) {
+      throw new Error('Airport API request failed')
+    }
+
+    const airports = await response.json()
+
+    // Filter and sort airports by distance from city
+    const nearbyAirports = airports
+      .filter((airport: any) =>
+        airport.latitudeAirport &&
+        airport.longitudeAirport &&
+        airport.codeIataAirport
+      )
+      .map((airport: any) => {
+        const distance = calculateDistance(
+          cityCoords.lat,
+          cityCoords.lon,
+          parseFloat(airport.latitudeAirport),
+          parseFloat(airport.longitudeAirport)
+        )
+
+        return {
+          name: airport.nameAirport,
+          code: airport.codeIataAirport,
+          distance: `${Math.round(distance)} miles`,
+          location: `${airport.cityIataAirport}, ${airport.countryIso2}`,
+          distanceValue: distance
+        }
+      })
+      .filter((airport: any) => airport.distanceValue <= 100) // Within 100 miles
+      .sort((a: any, b: any) => a.distanceValue - b.distanceValue)
+      .slice(0, 5) // Get top 5 closest airports
+      .map(({ distanceValue, ...airport }) => airport) // Remove distanceValue from final result
+
+    return nearbyAirports
+  } catch (error) {
+    console.error('Error searching airports:', error)
+    throw error
+  }
+}
+
+// Fallback mock data for development/testing
 const mockAirportData = {
   "new york": [
     { name: "John F. Kennedy International Airport", code: "JFK", distance: "15 miles", location: "Queens, NY" },
@@ -41,14 +143,47 @@ const searchAirportsTool = tool({
     city: z.string().describe("The city name to search airports near"),
   }),
   async execute({ city }) {
-    // Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+    try {
+      // Try to use real API if API key is available
+      if (AVIATION_EDGE_API_KEY) {
+        console.log(`Searching for airports near ${city} using real API...`)
+        const airports = await searchAirportsNearCity(city)
 
-    const cityKey = city.toLowerCase()
-    const airports = mockAirportData[cityKey as keyof typeof mockAirportData]
+        if (airports && airports.length > 0) {
+          return { airports }
+        }
+      }
 
-    if (!airports) {
-      // Return some generic airports for unknown cities
+      // Fallback to mock data
+      console.log(`Using mock data for ${city}...`)
+      const cityKey = city.toLowerCase()
+      const airports = mockAirportData[cityKey as keyof typeof mockAirportData]
+
+      if (!airports) {
+        // Return some generic airports for unknown cities
+        return {
+          airports: [
+            {
+              name: `${city} International Airport`,
+              code: "XXX",
+              distance: "10 miles",
+              location: `${city}`,
+            },
+            {
+              name: `${city} Regional Airport`,
+              code: "YYY",
+              distance: "25 miles",
+              location: `Near ${city}`,
+            },
+          ],
+        }
+      }
+
+      return { airports }
+    } catch (error) {
+      console.error('Error in searchAirportsTool:', error)
+
+      // Fallback to generic response on error
       return {
         airports: [
           {
@@ -66,8 +201,6 @@ const searchAirportsTool = tool({
         ],
       }
     }
-
-    return { airports }
   },
 })
 

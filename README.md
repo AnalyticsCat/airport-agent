@@ -141,12 +141,21 @@ OPENAI_BASE_URL=https://api.openai.com/v1
 NODE_ENV=development
 ```
 
-### Getting an OpenAI API Key
+### Getting API Keys
 
+#### OpenAI API Key (Required)
 1. Visit [OpenAI Platform](https://platform.openai.com/api-keys)
 2. Sign up or log in to your account
 3. Create a new API key
 4. Copy the key to your `.env.local` file
+
+#### Aviation Edge API Key (Optional - for real airport data)
+1. Visit [Aviation Edge](https://aviation-edge.com/)
+2. Sign up for a free account (1,000 requests/month)
+3. Get your API key from the dashboard
+4. Add to `.env.local`: `AVIATION_EDGE_API_KEY=your_key_here`
+
+**Note**: Without the Aviation Edge API key, the app will use mock data for predefined cities and generic responses for others.
 
 ## 📖 Usage
 
@@ -227,9 +236,11 @@ The application uses OpenAI's function calling feature to provide intelligent ai
 
 ### Tool Features:
 - **Intelligent Parsing**: Extracts city names from natural language
-- **Fallback Handling**: Provides generic results for unknown cities
-- **Structured Output**: Returns consistent airport data format
-- **Real-time Processing**: Simulates API delay for realistic UX
+- **Real API Integration**: Uses Aviation Edge API for live airport data
+- **Fallback Handling**: Gracefully falls back to mock data if API unavailable
+- **Distance Calculation**: Accurate distance calculation using Haversine formula
+- **Global Coverage**: Search airports worldwide with real coordinates
+- **Error Resilience**: Multiple fallback layers for reliable service
 
 ## 🏗️ Project Structure
 
